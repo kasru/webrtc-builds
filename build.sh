@@ -49,6 +49,9 @@ while getopts :o:b:r:t:c:l:e:n:xDd OPTION; do
   esac
 done
 
+DEBUG=${DEBUG:-0}
+[ "$DEBUG" = 1 ] && set -x
+
 OUTDIR=${OUTDIR:-out}
 BRANCH=${BRANCH:-}
 BLACKLIST=${BLACKLIST:-}
@@ -64,13 +67,12 @@ PACKAGE_AS_DEBIAN=${PACKAGE_AS_DEBIAN:-0}
 PACKAGE_FILENAME_PATTERN=${PACKAGE_FILENAME_PATTERN:-"webrtc-%rn%-%sr%-%to%-%tc%"}
 PACKAGE_NAME_PATTERN=${PACKAGE_NAME_PATTERN:-"webrtc"}
 PACKAGE_VERSION_PATTERN=${PACKAGE_VERSION_PATTERN:-"%rn%"}
-REPO_URL="https://chromium.googlesource.com/external/webrtc"
+REPO_URL="https://webrtc.googlesource.com/src.git"
 DEPOT_TOOLS_URL="https://chromium.googlesource.com/chromium/tools/depot_tools.git"
-DEPOT_TOOLS_DIR=$DIR/depot_tools
+DEPOT_TOOLS_DIR={$DEPOT_TOOLS_DIR:-$DIR/depot_tools}
 TOOLS_DIR=$DIR/tools
-PATH=$DEPOT_TOOLS_DIR:$DEPOT_TOOLS_DIR/python276_bin:$PATH
-
-[ "$DEBUG" = 1 ] && set -x
+PATH=$DEPOT_TOOLS_DIR:$DEPOT_TOOLS_DIR/python276_bin:$DEPOT_TOOLS_DIR/bootstrap-3_8_0_chromium_8_bin/python/bin:$PATH
+export PATH
 
 mkdir -p $OUTDIR
 OUTDIR=$(cd $OUTDIR && pwd -P)
@@ -89,10 +91,15 @@ check::build::env $PLATFORM "$TARGET_CPU"
 echo Checking depot-tools
 check::depot-tools $PLATFORM $DEPOT_TOOLS_URL $DEPOT_TOOLS_DIR
 
+if [ ! -d $DEPOT_TOOLS_DIR ]; then
+  echo "FATAL: $DEPOT_TOOLS_DIR does not exist..."
+  exit -1
+fi
+
 if [ ! -z $BRANCH ]; then
   REVISION=$(git ls-remote $REPO_URL --heads $BRANCH | head --lines 1 | cut --fields 1) || \
     { echo "Cound not get branch revision" && exit 1; }
-   echo "Building branch: $BRANCH"
+  echo "Building branch: $BRANCH"
 else
   REVISION=${REVISION:-$(latest-rev $REPO_URL)} || \
     { echo "Could not get latest revision" && exit 1; }

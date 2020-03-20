@@ -44,8 +44,10 @@ OPTIONS:
    -t TARGET OS   The target os for cross-compilation. Default is the host OS such as 'linux', 'mac', 'win'. Other values can be 'android', 'ios'.
    -c TARGET CPU  The target cpu for cross-compilation. Default is 'x64'. Other values can be 'x86', 'arm64', 'arm'.
    -l BLACKLIST   List *.o objects to exclude from the static library.
-   -e             Compile WebRTC with RTII enabled.
-   -f             Build only mode. Skip repo sync and dependency checks, just build, compile and package.
+   -e ENABLE_RTTI Compile WebRTC with RTII enabled. Default is '1'.
+   -n CONFIGS     Build configurations, space-separated. Default is 'Debug Release'. Other values can be 'Debug', 'Release'.
+   -x             Express build mode. Skip repo sync and dependency checks, just build, compile and package.
+   -D             [Linux] Generate a debian package
    -d             Debug mode. Print all executed commands.
    -h             Show this message
 EOF
