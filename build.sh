@@ -69,7 +69,7 @@ PACKAGE_NAME_PATTERN=${PACKAGE_NAME_PATTERN:-"webrtc"}
 PACKAGE_VERSION_PATTERN=${PACKAGE_VERSION_PATTERN:-"%rn%"}
 REPO_URL="https://webrtc.googlesource.com/src.git"
 DEPOT_TOOLS_URL="https://chromium.googlesource.com/chromium/tools/depot_tools.git"
-DEPOT_TOOLS_DIR={$DEPOT_TOOLS_DIR:-$DIR/depot_tools}
+DEPOT_TOOLS_DIR=${DEPOT_TOOLS_DIR:-$DIR/depot_tools}
 TOOLS_DIR=$DIR/tools
 PATH=$DEPOT_TOOLS_DIR:$DEPOT_TOOLS_DIR/python276_bin:$DEPOT_TOOLS_DIR/bootstrap-3_8_0_chromium_8_bin/python/bin:$PATH
 export PATH
