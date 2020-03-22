@@ -21,6 +21,26 @@ function clean() {
   rm -rf $outdir/* $outdir/.gclient*
 }
 
+# Patch depot tools.
+#
+# $1: The depot tools directory.
+function patch::depot-tools() {
+  local cipd_ps1_filename="$1/cipd.ps1"
+
+  #Patch for build webrtc for x86, but depot-tools get for amd64
+  sed -i 's/\$Platform = "windows-386"/\$Platform = "windows-amd64"/g' "$cipd_ps1_filename"
+
+  #Set proxy for powershell
+  local proxy=${http_proxy:-""}
+  if [ -z "$proxy" ]; then
+    proxy=${HTTP_PROXY:-""}
+  fi
+  if [ ! -z "$proxy" ]; then
+    sed -i "s|\$wc = (New-Object System.Net.WebClient)|\$wc = (New-Object System.Net.WebClient)\n  \$wc.Proxy = (New-Object System.Net.WebProxy('$proxy'))\n  echo \"Downloading by proxy: '$proxy'\"\n|g" "$cipd_ps1_filename"
+  fi
+  exit 2
+}
+
 # Make sure depot tools are present.
 #
 # $1: The platform type.
@@ -36,6 +56,7 @@ function check::depot-tools() {
     if [ $platform = 'win' ]; then
       # run gclient.bat to get python
       pushd $depot_tools_dir >/dev/null
+      patch::depot-tools .
       ./gclient.bat
       popd >/dev/null
     fi
