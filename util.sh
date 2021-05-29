@@ -197,7 +197,7 @@ function check::webrtc::deps() {
   linux)
     # Automatically accepts ttf-mscorefonts EULA
     echo ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true | sudo debconf-set-selections
-    sudo $outdir/src/build/install-build-deps.sh --no-syms --no-arm --no-chromeos-fonts --no-nacl --no-prompt
+    #sudo $outdir/src/build/install-build-deps.sh --no-syms --no-arm --no-chromeos-fonts --no-nacl --no-prompt
     ;;
   esac
 
@@ -433,7 +433,11 @@ function compile() {
   # Set default default common  and target args.
   # `rtc_include_tests=false`: Disable all unit tests
   # `treat_warnings_as_errors=false`: Don't error out on compiler warnings
-  local common_args="rtc_include_tests=false treat_warnings_as_errors=false"
+  local common_args="rtc_include_tests=false rtc_build_examples=false treat_warnings_as_errors=false"
+  common_args+=" clang_use_chrome_plugins=false disable_glibcxx_debug=true build_with_libjingle=false build_with_chromium=false enable_tracing=true include_tests=false include_examples=false enable_protobuf=false rtc_enable_protobuf=false"
+  common_args+=" libyuv_include_tests=false"
+  common_args+=" rtc_use_gtk=false use_gtk=false"
+
   local target_args="target_os=\"$target_os\" target_cpu=\"$target_cpu\""
 
   # Build WebRTC with RTII enbled.
@@ -469,11 +473,11 @@ function compile() {
       if [ $COMBINE_LIBRARIES = 1 ]; then
         # Method 1: Merge the static .a/.lib libraries.
         combine::static $platform "out/$target_cpu/$cfg" libwebrtc_full
-        
+
         # Method 2: Merge .o/.obj objects to create the library, although results 
         # have been inconsistent so the static merging method is default.
         # combine::objects $platform "out/$target_cpu/$cfg" libwebrtc_full
-      fi 
+      fi
     done
   popd >/dev/null
 }
@@ -493,7 +497,7 @@ function package::prepare() {
   local resource_dir="$4"
   local configs="$5"
   local revision_number="$6"
-  
+
   if [ $platform = 'mac' ]; then
     CP='gcp'
   else
@@ -508,7 +512,7 @@ function package::prepare() {
 
       # Find and copy header files
       local header_source_dir=webrtc
-      
+
       # Revision 19846 moved src/webrtc to src/
       # https://webrtc.googlesource.com/src/+/92ea95e34af5966555903026f45164afbd7e2088
       [ $revision_number -ge 19846 ] && header_source_dir=.
@@ -516,7 +520,7 @@ function package::prepare() {
       # Copy header files, skip third_party dir
       find $header_source_dir -path './third_party' -prune -o -type f \( -name '*.h' \) -print | \
         xargs -I '{}' $CP --parents '{}' $outdir/$package_filename/include
-        
+
       # Find and copy dependencies
       # The following build dependencies were excluded: 
       # gflags, ffmpeg, openh264, openmax_dl, winsdk_samples, yasm
