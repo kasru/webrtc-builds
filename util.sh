@@ -74,10 +74,10 @@ function check::depot-tools() {
 function ensure-package() {
   local name="$1"
   local binary="${2:-$1}"
-  if ! which $binary > /dev/null ; then
-    sudo apt-get update -qq
-    sudo apt-get install -y $name
-  fi
+#  if ! which $binary > /dev/null ; then
+#    sudo apt-get update -qq
+#    sudo apt-get install -y $name
+#  fi
 }
 
 # Check if any of the arguments is executable (logical OR condition).
@@ -291,8 +291,8 @@ function compile::ninja() {
   echo "Generating project files with: $gn_args"
   gn gen $outputdir --args="$gn_args"
   pushd $outputdir >/dev/null
-    # ninja -v -C  .
-    ninja -C  .
+    ninja -j1 -v -C  .
+    # ninja -C  .
   popd >/dev/null
 }
 
@@ -443,8 +443,8 @@ function compile() {
     common_args+=" pkg_config=\"arm-linux-gnueabihf-pkg-config\""
     common_args+=" use_glib=false"
     common_args+=" use_gold=false"
-    #common_args+=" rtc_use_x11=false use_x11=false"
-    #common_args+=" rtc_use_dummy_audio_file_devices=true rtc_include_pulse_audio=false"
+    common_args+=" rtc_use_x11=false use_x11=false"
+    common_args+=" rtc_use_dummy_audio_file_devices=true rtc_include_pulse_audio=false"
   fi
 
   local target_args="target_os=\"$target_os\" target_cpu=\"$target_cpu\""
@@ -583,9 +583,9 @@ function package::archive() {
   else
     OUTFILE=$package_filename.tar.gz #.tar.bz2
   fi
-  
+
   pushd $outdir >/dev/null
-  
+
     # Archive the package
     rm -f $OUTFILE
     pushd $package_filename >/dev/null
