@@ -144,10 +144,10 @@ function check::build::env() {
       echo "*** Warning: The Multiverse repository is probably not enabled ***"
       echo "*** which is required for things like msttcorefonts.           ***"
     fi
-    if ! which sudo > /dev/null ; then
-      apt-get update -qq
-      apt-get install -y sudo
-    fi
+    #if ! which sudo > /dev/null ; then
+    #  apt-get update -qq
+    #  apt-get install -y sudo
+    #fi
     ensure-package curl
     ensure-package git
     ensure-package python
@@ -434,9 +434,18 @@ function compile() {
   # `rtc_include_tests=false`: Disable all unit tests
   # `treat_warnings_as_errors=false`: Don't error out on compiler warnings
   local common_args="rtc_include_tests=false rtc_build_examples=false treat_warnings_as_errors=false"
-  common_args+=" clang_use_chrome_plugins=false disable_glibcxx_debug=true build_with_libjingle=false build_with_chromium=false enable_tracing=true include_tests=false include_examples=false enable_protobuf=false rtc_enable_protobuf=false"
+  common_args+=" clang_use_chrome_plugins=false disable_glibcxx_debug=true build_with_libjingle=false enable_tracing=true include_tests=false include_examples=false"
+  common_args+=" enable_protobuf=false rtc_enable_protobuf=false"
   common_args+=" libyuv_include_tests=false"
   common_args+=" rtc_use_gtk=false use_gtk=false"
+
+  if [ $target_cpu = "arm" ]; then
+    common_args+=" pkg_config=\"arm-linux-gnueabihf-pkg-config\""
+    common_args+=" use_glib=false"
+    common_args+=" use_gold=false"
+    #common_args+=" rtc_use_x11=false use_x11=false"
+    #common_args+=" rtc_use_dummy_audio_file_devices=true rtc_include_pulse_audio=false"
+  fi
 
   local target_args="target_os=\"$target_os\" target_cpu=\"$target_cpu\""
 
@@ -747,7 +756,9 @@ function revision-number() {
   # This says curl the revision log with text format, base64 decode it using
   # openssl since its more portable than just 'base64', take the last line which
   # contains the commit revision number and output only the matching {#nnn} part
-  openssl base64 -d -A <<< $(curl --silent $repo_url/+/$revision?format=TEXT) \
+  #openssl base64 -d -A <<< $(curl --silent $repo_url/+/$revision?format=TEXT) \
+  #  | tail -1 | egrep -o '{#([0-9]+)}' | tr -d '{}#'
+  curl --silent $repo_url/+/$revision?format=TEXT | base64 -d \
     | tail -1 | egrep -o '{#([0-9]+)}' | tr -d '{}#'
 }
 
