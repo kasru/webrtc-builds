@@ -532,8 +532,8 @@ function package::prepare() {
       # https://webrtc.googlesource.com/src/+/92ea95e34af5966555903026f45164afbd7e2088
       [ $revision_number -ge 19846 ] && header_source_dir=.
 
-      # Copy header files, skip third_party dir
-      find $header_source_dir -path './third_party' -prune -o -type f \( -name '*.h' \) -print | \
+      # Copy header files, skip third_party and build dirs
+      find $header_source_dir \( -path './third_party' -o -path './build' \) -prune -o -type f \( -name '*.h' \) -print | \
         xargs -I '{}' $CP --parents '{}' $outdir/$package_filename/include
 
       # Find and copy dependencies
