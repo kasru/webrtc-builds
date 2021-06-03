@@ -287,12 +287,18 @@ function patch() {
 function compile::ninja() {
   local outputdir="$1"
   local gn_args="$2"
+  local target_cpu="$3"
 
   echo "Generating project files with: $gn_args"
   gn gen $outputdir --args="$gn_args"
   pushd $outputdir >/dev/null
-    ninja -j1 -v -C  .
-    # ninja -C  .
+    if [ $target_cpu = "arm" ]; then
+      sed -i.bak 's/arm-linux-gnueabihf-//g' toolchain.ninja
+      /srv/mer/sdks/sfossdk/mer-sdk-chroot sb2 bash -c "cd $PWD && ninja -v -C ."
+    else
+      #ninja -v -C  .
+      ninja -C  .
+    fi
   popd >/dev/null
 }
 
@@ -477,7 +483,7 @@ function compile() {
   pushd $outdir/src >/dev/null
     for cfg in $configs; do
       [ "$cfg" = 'Release' ] && common_args+=' is_debug=false strip_debug_info=true symbol_level=0'
-      compile::ninja "out/$target_cpu/$cfg" "$common_args $target_args"
+      compile::ninja "out/$target_cpu/$cfg" "$common_args $target_args" "$target_cpu"
 
       if [ $COMBINE_LIBRARIES = 1 ]; then
         # Method 1: Merge the static .a/.lib libraries.
